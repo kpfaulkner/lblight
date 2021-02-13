@@ -1,27 +1,29 @@
 package pkg
 
 import (
-	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"sync"
 )
 
 // Backend has the ReverseProxy to the real backend server.
 type Backend struct {
-	url          string // do we really need this here?
+	url          *url.URL // do we really need this here?
 	Alive        bool
 	InUse        bool
 	mux          sync.RWMutex
 	ReverseProxy *httputil.ReverseProxy
 }
 
-func NewBackend(url string) *Backend {
+func NewBackend(uri string) *Backend {
 	be := Backend{}
-	be.url = url
+	be.url,_ = url.Parse(uri) // yes, ignoring error for moment... I'm bad. TODO(kpfaulkner)
 	be.Alive = false
 	be.InUse = false
-	be.ReverseProxy = httputil.NewSingleHostReverseProxy(url)
+	be.ReverseProxy = httputil.NewSingleHostReverseProxy(be.url)
 	return &be
 }
 
@@ -54,6 +56,8 @@ func NewBackendRouter(host string, port int, acceptedHeaders map[string]string, 
 // Listens to port, parses both headers and request paths and determines (based on configuration) where
 // the request should be forwarded on to. All WIP and learning.
 type LBLight struct {
+
+	port int
 
 	// match prefix to appropriate router
 	pathPrefixToBackendRouter map[string]*BackendRouter
@@ -103,4 +107,19 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 	}
 
 	return nil
+}
+
+
+// handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
+func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
+
+}
+
+func (l *LBLight) ListenAndServeTraffic() error {
+
+	err := http.ListenAndServeTLS( fmt.Sprintf(":%d", l.port), "localhost.crt", "localhost.key", http.HandlerFunc(l.handleRequestsAndRedirect) )
+	if err != nil {
+		log.Errorf("SERVER BLEW UP!! %s", err.Error())
+	}
+	return err
 }
