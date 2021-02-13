@@ -33,5 +33,8 @@ func main() {
 	ber := pkg.NewBackendRouter("127.0.0.1",8081, nil, pathMap,10)
 	lbl.AddBackendRouter(ber)
 
-	lbl.ListenAndServeTraffic()
+	err := lbl.ListenAndServeTraffic()
+	if err != nil {
+		log.Fatalf("LBLight exiting with error %s", err.Error())
+	}
 }
