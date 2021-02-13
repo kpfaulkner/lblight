@@ -30,7 +30,7 @@ func main() {
 
 	pathMap := make(map[string]bool)
 	pathMap["/foo"] = true
-	ber := pkg.NewBackendRouter("www.google.com", 443, nil, pathMap,10)
+	ber := pkg.NewBackendRouter("127.0.0.1",8081, nil, pathMap,10)
 	lbl.AddBackendRouter(ber)
 
 	lbl.ListenAndServeTraffic()
