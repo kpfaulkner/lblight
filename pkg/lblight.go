@@ -56,7 +56,6 @@ func (l *LBLight) GetBackendRouterByPathPrefix(path string) (*BackendRouter, err
 	return nil, fmt.Errorf("Unable to find matching backend for path %s", path)
 }
 
-
 func (l *LBLight) GetBackendRouterByHeader(headerName string, headerValue string) (*BackendRouter, error) {
 
 	headerValues, ok := l.headerToBackendRouter[headerName]
@@ -110,7 +109,7 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 			//l.headerToBackendRouter[header][val] = ber
 			var specificHeaderMap map[string]*BackendRouter
 			var ok bool
-			specificHeaderMap,ok  = l.headerToBackendRouter[header]
+			specificHeaderMap, ok = l.headerToBackendRouter[header]
 			if !ok {
 				//headerVal, ok2 := specificHeaderMap[val]
 				specificHeaderMap = make(map[string]*BackendRouter)
@@ -122,15 +121,12 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 	return nil
 }
 
-
-
-
 // getBackend.... TODO(kpfaulkner) make real!
 // just gets first match for now.
 func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 
 	// just return first one
-	backendRouter, err := l.GetBackendRouterByPathPrefix( req.URL.Path)
+	backendRouter, err := l.GetBackendRouterByPathPrefix(req.URL.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +140,7 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
 
-	backend,err := l.getBackend(req)
+	backend, err := l.getBackend(req)
 	if err != nil {
 		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
 		return

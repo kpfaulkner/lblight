@@ -4,8 +4,6 @@ import (
 	"fmt"
 )
 
-
-
 // BackendRouter points to the REAL server doing the work, ie what the LB is connecting to.
 // includes list of header values and/or url paths that will be accepted for this backend.
 type BackendRouter struct {
@@ -36,9 +34,9 @@ func NewBackendRouter(host string, port int, acceptedHeaders map[string]string, 
 
 // GetBackend either retrieves backend from a pool OR adds new entry to pool (or errors out)
 // TODO(kpfaulkner) add locking.
-func (ber *BackendRouter) GetBackend() (*Backend, error ) {
+func (ber *BackendRouter) GetBackend() (*Backend, error) {
 	// check if we have any backends spare. If so, use it.
-	for index,be := range ber.backends {
+	for index, be := range ber.backends {
 		if !be.InUse {
 			ber.backends[index].InUse = true
 			return be, nil

@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-
 func initLogging(logFile string) {
 	var file, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -16,7 +15,6 @@ func initLogging(logFile string) {
 	log.SetOutput(file)
 	log.SetFormatter(&log.TextFormatter{})
 }
-
 
 func main() {
 
@@ -30,7 +28,7 @@ func main() {
 
 	pathMap := make(map[string]bool)
 	pathMap["/foo"] = true
-	ber := pkg.NewBackendRouter("127.0.0.1",8081, nil, pathMap,10)
+	ber := pkg.NewBackendRouter("127.0.0.1", 8081, nil, pathMap, 10)
 	lbl.AddBackendRouter(ber)
 
 	err := lbl.ListenAndServeTraffic()
