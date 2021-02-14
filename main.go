@@ -18,6 +18,8 @@ func initLogging(logFile string) {
 
 func main() {
 
+	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+
 	initLogging("lblight.log")
 	port := os.Getenv("HTTP_PLATFORM_PORT")
 	if port == "" {
@@ -28,8 +30,26 @@ func main() {
 
 	pathMap := make(map[string]bool)
 	pathMap["/foo"] = true
-	ber := pkg.NewBackendRouter("127.0.0.1", 8081, nil, pathMap, 10)
+	ber := pkg.NewBackendRouter("127.0.0.1", 8083, nil, pathMap, 5000)
 	lbl.AddBackendRouter(ber)
+
+	/*
+	for i:=0;i<5000;i++ {
+		ber := pkg.NewBackendRouter("127.0.0.1", 8083, nil, pathMap, 5000)
+		lbl.AddBackendRouter(ber)
+	} */
+
+	pathMap2 := make(map[string]bool)
+	pathMap2["/bar"] = true
+	ber2 := pkg.NewBackendRouter("127.0.0.1", 8084, nil, pathMap2, 5000)
+	lbl.AddBackendRouter(ber2)
+
+	/*
+	for i:=0; i< 5000;i++ {
+		ber2 := pkg.NewBackendRouter("127.0.0.1", 8084, nil, pathMap2, 5000)
+		lbl.AddBackendRouter(ber2)
+	} */
+
 
 	err := lbl.ListenAndServeTraffic()
 	if err != nil {

@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"sync"
 )
 
 // BackendRouter points to the REAL server doing the work, ie what the LB is connecting to.
@@ -20,6 +21,8 @@ type BackendRouter struct {
 
 	// list of all backends that can be used with the config.
 	backends []*Backend
+
+	mux sync.RWMutex
 }
 
 func NewBackendRouter(host string, port int, acceptedHeaders map[string]string, acceptedPaths map[string]bool, maxBackends int) *BackendRouter {
@@ -35,10 +38,15 @@ func NewBackendRouter(host string, port int, acceptedHeaders map[string]string, 
 // GetBackend either retrieves backend from a pool OR adds new entry to pool (or errors out)
 // TODO(kpfaulkner) add locking.
 func (ber *BackendRouter) GetBackend() (*Backend, error) {
+
+	// TODO(kpfaulkner) benchmark this!
+	ber.mux.Lock()
+	defer ber.mux.Unlock()
+
 	// check if we have any backends spare. If so, use it.
 	for index, be := range ber.backends {
-		if !be.InUse {
-			ber.backends[index].InUse = true
+		if be.IsAlive() && !be.IsInUse() {
+			ber.backends[index].SetInUse(true)
 			return be, nil
 		}
 	}
