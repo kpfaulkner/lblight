@@ -53,7 +53,7 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 
 	// if none spare but haven't hit maxBackends yet, make one
 	if len(ber.backends) <= ber.maxBackends {
-		be := NewBackend(fmt.Sprintf("https://%s:%d", ber.host, ber.port))
+		be := NewBackend(fmt.Sprintf("http://%s:%d", ber.host, ber.port))
 		ber.backends = append(ber.backends, be)
 		return be, nil
 	}

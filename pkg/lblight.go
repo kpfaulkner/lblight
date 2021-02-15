@@ -147,6 +147,7 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	}
 	defer backend.SetInUse(false)
 
+	log.Info("Have backend, about to start proxying")
 	backend.ReverseProxy.ServeHTTP(res, req)
 	//backend.SetInUse(false)
 	return
