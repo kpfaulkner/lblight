@@ -30,7 +30,6 @@ func NewBackendRouter(acceptedHeaders map[string]string, acceptedPaths map[strin
 	return &ber
 }
 
-
 // AddBackend adds backend to router.
 func (ber *BackendRouter) AddBackend(backend *Backend) error {
 
@@ -39,8 +38,6 @@ func (ber *BackendRouter) AddBackend(backend *Backend) error {
 	ber.backends = append(ber.backends, backend)
 	return nil
 }
-
-
 
 // GetBackend either retrieves backend from a pool OR adds new entry to pool (or errors out)
 // This needs to be based on random/load/wild-guess/spirits....
@@ -53,15 +50,15 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 	// just get random (for now).
 	r := rand.Intn(len(ber.backends))
 	be := ber.backends[r]
-	return be,nil
+	return be, nil
 
 	/*
-	// Just pick the first one for now.
-	for _, be := range ber.backends {
-		if be.IsAlive() {
-			return be, nil
-		}
-	}  */
+		// Just pick the first one for now.
+		for _, be := range ber.backends {
+			if be.IsAlive() {
+				return be, nil
+			}
+		}  */
 
 	// if cant make any more, return error.
 	return nil, fmt.Errorf("unable to provide backend for request")

@@ -5,6 +5,7 @@ import (
 	"github.com/kpfaulkner/lblight/pkg"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"strconv"
 )
 
 func initLogging(logFile string) {
@@ -18,10 +19,10 @@ func initLogging(logFile string) {
 
 func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 
-	for _,beConfig := range config.BackendRouterConfigs {
+	for _, beConfig := range config.BackendRouterConfigs {
 		pathMap := make(map[string]bool)
 		for _, path := range beConfig.AcceptedPaths {
-			pathMap[ path ] = true
+			pathMap[path] = true
 		}
 
 		// make header map later.
@@ -29,7 +30,7 @@ func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 		ber := pkg.NewBackendRouter(nil, pathMap)
 
 		// now add backends that the router will route to.
-		for _,bec := range beConfig.BackendConfigs {
+		for _, bec := range beConfig.BackendConfigs {
 			be := pkg.NewBackend(bec.Host, bec.Port, bec.MaxConnections)
 			ber.AddBackend(be)
 		}
@@ -43,14 +44,19 @@ func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 
 	initLogging("lblight.log")
-	port := os.Getenv("HTTP_PLATFORM_PORT")
-	if port == "" {
-		port = "8080"
+	var config pkg.Config
+
+	var port int
+	portStr := os.Getenv("HTTP_PLATFORM_PORT")
+	if portStr == "" {
+		config = pkg.LoadConfig("lblight.json")
+		port = config.Port
+	} else {
+		port, _ = strconv.Atoi(portStr)
+		config = pkg.LoadConfig("d:/home/site/wwwroot/lblight.json")
 	}
 
-	config := pkg.LoadConfig("./lblight.json")
-
-	lbl := pkg.NewLBLight(config.Port)
+	lbl := pkg.NewLBLight(port)
 
 	registerPaths(lbl, config)
 

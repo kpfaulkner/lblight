@@ -7,20 +7,20 @@ import (
 )
 
 type BackendConfig struct {
-	Host string `json:"host"`
-	Port int    `json:"port"`
-	MaxConnections int `json:"maxconnections"`
+	Host           string `json:"host"`
+	Port           int    `json:"port"`
+	MaxConnections int    `json:"maxconnections"`
 }
 
 type BackendRouterConfig struct {
-	AcceptedPaths   []string `json:"AcceptedPaths,omitempty"`
+	AcceptedPaths   []string          `json:"AcceptedPaths,omitempty"`
 	AcceptedHeaders map[string]string `json:"AcceptedHeaders,omitempty"`
-	BackendConfigs []BackendConfig `json:"BackendConfigs,omitempty"`
+	BackendConfigs  []BackendConfig   `json:"BackendConfigs,omitempty"`
 }
 
 type Config struct {
-	Host string
-	Port int
+	Host                 string
+	Port                 int
 	BackendRouterConfigs []BackendRouterConfig `json:"BackendRouterConfigs"`
 }
 

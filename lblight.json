@@ -4,7 +4,7 @@
   "BackendRouterConfigs": [
     {
       "AcceptedPaths": [
-        "/"
+        "/foo"
       ],
       "AcceptedHeaders": [
         {
@@ -17,7 +17,20 @@
           "host": "127.0.0.1",
           "port": 5000,
           "maxconnections": 1000
-        },
+        }
+      ]
+    },
+    {
+      "AcceptedPaths": [
+        "/bar"
+      ],
+      "AcceptedHeaders": [
+        {
+          "X-Header1": "val1",
+          "X-Header2": "val2"
+        }
+      ],
+      "BackendConfigs": [
         {
           "host": "127.0.0.1",
           "port": 5001,

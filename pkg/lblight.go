@@ -140,6 +140,10 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
 
+	//fmt.Printf("doing stuff\n")
+	//fmt.Fprintf(res,"do stuff")
+	//return
+
 	backend, err := l.getBackend(req)
 	if err != nil {
 		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
@@ -147,7 +151,7 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	}
 	//defer backend.SetInUse(false)
 
-	backendConnection,err := backend.GetBackendConnection()
+	backendConnection, err := backend.GetBackendConnection()
 	if err != nil {
 		log.Errorf("Unable to find backendconnection for URL %s", req.RequestURI)
 		return

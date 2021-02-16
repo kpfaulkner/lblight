@@ -9,16 +9,15 @@ import (
 // The Backend has a collection of BackendConnections. These BackendConnections are the REAL connections to the given
 // target machine
 type Backend struct {
-	Host string
-	Port int
+	Host               string
+	Port               int
 	BackendConnections []*BackendConnection
-	MaxConnections int
-	mux sync.RWMutex
+	MaxConnections     int
+	mux                sync.RWMutex
 
 	// Is this backend alive/dead
 	Alive    bool
 	aliveMux sync.RWMutex
-
 }
 
 func NewBackend(host string, port int, maxConnections int) *Backend {
@@ -55,7 +54,6 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 	// if cant make any more, return error.
 	return nil, fmt.Errorf("unable to provide backendconnection for request")
 }
-
 
 func (b *Backend) IsAlive() bool {
 	var alive bool
