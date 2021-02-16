@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 )
 
@@ -49,12 +50,18 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 	ber.mux.Lock()
 	defer ber.mux.Unlock()
 
+	// just get random (for now).
+	r := rand.Intn(len(ber.backends))
+	be := ber.backends[r]
+	return be,nil
+
+	/*
 	// Just pick the first one for now.
 	for _, be := range ber.backends {
 		if be.IsAlive() {
 			return be, nil
 		}
-	}
+	}  */
 
 	// if cant make any more, return error.
 	return nil, fmt.Errorf("unable to provide backend for request")
