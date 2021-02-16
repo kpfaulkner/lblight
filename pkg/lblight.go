@@ -145,10 +145,16 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
 		return
 	}
-	defer backend.SetInUse(false)
+	//defer backend.SetInUse(false)
 
-	log.Info("Have backend, about to start proxying")
-	backend.ReverseProxy.ServeHTTP(res, req)
+	backendConnection,err := backend.GetBackendConnection()
+	if err != nil {
+		log.Errorf("Unable to find backendconnection for URL %s", req.RequestURI)
+		return
+	}
+
+	log.Info("Have backendconnection, about to start proxying")
+	backendConnection.ReverseProxy.ServeHTTP(res, req)
 	//backend.SetInUse(false)
 	return
 }

@@ -9,6 +9,7 @@ import (
 type BackendConfig struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`
+	MaxConnections int `json:"maxconnections"`
 }
 
 type BackendRouterConfig struct {

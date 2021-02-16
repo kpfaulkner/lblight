@@ -16,6 +16,28 @@ func initLogging(logFile string) {
 	log.SetFormatter(&log.TextFormatter{})
 }
 
+func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
+
+	for _,beConfig := range config.BackendRouterConfigs {
+		pathMap := make(map[string]bool)
+		for _, path := range beConfig.AcceptedPaths {
+			pathMap[ path ] = true
+		}
+
+		// make header map later.
+		//headerMap := make(map[string]map[string])
+		ber := pkg.NewBackendRouter(nil, pathMap)
+
+		// now add backends that the router will route to.
+		for _,bec := range beConfig.BackendConfigs {
+			be := pkg.NewBackend(bec.Host, bec.Port, bec.MaxConnections)
+			ber.AddBackend(be)
+		}
+
+		lbl.AddBackendRouter(ber)
+	}
+}
+
 func main() {
 
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
@@ -26,32 +48,11 @@ func main() {
 		port = "8080"
 	}
 
-	lbl := pkg.NewLBLight(8080)
+	config := pkg.LoadConfig("./lblight.json")
 
-	pathMap := make(map[string]bool)
-	pathMap["/"] = true
-	ber := pkg.NewBackendRouter("10.0.0.99", 5000, nil, pathMap, 10)
-	lbl.AddBackendRouter(ber)
+	lbl := pkg.NewLBLight(config.Port)
 
-	/*
-	for i:=0;i<5000;i++ {
-		ber := pkg.NewBackendRouter("127.0.0.1", 8083, nil, pathMap, 5000)
-		lbl.AddBackendRouter(ber)
-	} */
-
-	/*
-	pathMap2 := make(map[string]bool)
-	pathMap2["/bar"] = true
-	ber2 := pkg.NewBackendRouter("127.0.0.1", 8084, nil, pathMap2, 5000)
-	lbl.AddBackendRouter(ber2)
-  */
-
-	/*
-	for i:=0; i< 5000;i++ {
-		ber2 := pkg.NewBackendRouter("127.0.0.1", 8084, nil, pathMap2, 5000)
-		lbl.AddBackendRouter(ber2)
-	} */
-
+	registerPaths(lbl, config)
 
 	err := lbl.ListenAndServeTraffic()
 	if err != nil {

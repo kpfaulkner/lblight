@@ -5,14 +5,11 @@ import (
 	"sync"
 )
 
-// BackendRouter points to the REAL server doing the work, ie what the LB is connecting to.
-// includes list of header values and/or url paths that will be accepted for this backend.
+// BackendRouter is in control of a particular path (eg. /foo). The BackendRouter has a collection of
+// Backends. Each Backend is a unique host/ip (could be single machine or another cluster/LB etc).
+// The BackendRouter determines which Backend should receive the request, this could be based on
+// random/round-robin/load-tracking/wild-guess etc.
 type BackendRouter struct {
-	host string
-	port int
-
-	maxBackends int
-
 	// if the beginning of the request is in acceptedPaths, then use this backend.
 	acceptedPaths map[string]bool
 
@@ -25,37 +22,38 @@ type BackendRouter struct {
 	mux sync.RWMutex
 }
 
-func NewBackendRouter(host string, port int, acceptedHeaders map[string]string, acceptedPaths map[string]bool, maxBackends int) *BackendRouter {
+func NewBackendRouter(acceptedHeaders map[string]string, acceptedPaths map[string]bool) *BackendRouter {
 	ber := BackendRouter{}
-	ber.host = host
-	ber.port = port
 	ber.acceptedHeaders = acceptedHeaders
 	ber.acceptedPaths = acceptedPaths
-	ber.maxBackends = maxBackends
 	return &ber
 }
 
+
+// AddBackend adds backend to router.
+func (ber *BackendRouter) AddBackend(backend *Backend) error {
+
+	ber.mux.Lock()
+	defer ber.mux.Unlock()
+	ber.backends = append(ber.backends, backend)
+	return nil
+}
+
+
+
 // GetBackend either retrieves backend from a pool OR adds new entry to pool (or errors out)
-// TODO(kpfaulkner) add locking.
+// This needs to be based on random/load/wild-guess/spirits....
 func (ber *BackendRouter) GetBackend() (*Backend, error) {
 
 	// TODO(kpfaulkner) benchmark this!
 	ber.mux.Lock()
 	defer ber.mux.Unlock()
 
-	// check if we have any backends spare. If so, use it.
-	for index, be := range ber.backends {
-		if be.IsAlive() && !be.IsInUse() {
-			ber.backends[index].SetInUse(true)
+	// Just pick the first one for now.
+	for _, be := range ber.backends {
+		if be.IsAlive() {
 			return be, nil
 		}
-	}
-
-	// if none spare but haven't hit maxBackends yet, make one
-	if len(ber.backends) <= ber.maxBackends {
-		be := NewBackend(fmt.Sprintf("http://%s:%d", ber.host, ber.port))
-		ber.backends = append(ber.backends, be)
-		return be, nil
 	}
 
 	// if cant make any more, return error.
