@@ -60,7 +60,7 @@ func main() {
 
 	registerPaths(lbl, config)
 
-	err := lbl.ListenAndServeTraffic()
+	err := lbl.ListenAndServeTraffic(config.CertCrtPath, config.CertKeyPath)
 	if err != nil {
 		log.Fatalf("LBLight exiting with error %s", err.Error())
 	}

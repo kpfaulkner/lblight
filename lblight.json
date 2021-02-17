@@ -1,6 +1,8 @@
 {
   "Host": "127.0.0.1",
   "Port": 4000,
+  "CertCrtPath": "localhost.crt",
+  "CertKeyPath": "localhost.key",
   "BackendRouterConfigs": [
     {
       "AcceptedPaths": [

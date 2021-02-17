@@ -163,9 +163,9 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	return
 }
 
-func (l *LBLight) ListenAndServeTraffic() error {
+func (l *LBLight) ListenAndServeTraffic(certCRTPath string, certKeyPath string) error {
 
-	err := http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port), "localhost.crt", "localhost.key", http.HandlerFunc(l.handleRequestsAndRedirect))
+	err := http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port),certCRTPath, certKeyPath, http.HandlerFunc(l.handleRequestsAndRedirect))
 	if err != nil {
 		log.Errorf("SERVER BLEW UP!! %s", err.Error())
 	}

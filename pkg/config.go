@@ -19,8 +19,10 @@ type BackendRouterConfig struct {
 }
 
 type Config struct {
-	Host                 string
-	Port                 int
+	CertCrtPath          string                `json:"certcrtpath"`
+	CertKeyPath          string                `json:"certkeypath"`
+	Host                 string                `json:"host"`
+	Port                 int                   `json:"port"`
 	BackendRouterConfigs []BackendRouterConfig `json:"BackendRouterConfigs"`
 }
 
