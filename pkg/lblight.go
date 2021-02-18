@@ -140,9 +140,12 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
 
-	//fmt.Printf("doing stuff\n")
-	//fmt.Fprintf(res,"do stuff")
-	//return
+	log.Infof("doing stuff")
+	fmt.Printf("doing stuff\n")
+	fmt.Fprintf(res,"do stuff")
+	return
+
+	log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
 
 	backend, err := l.getBackend(req)
 	if err != nil {
@@ -150,6 +153,8 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		return
 	}
 	//defer backend.SetInUse(false)
+
+	log.Infof("have backend")
 
 	backendConnection, err := backend.GetBackendConnection()
 	if err != nil {
@@ -165,6 +170,7 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 
 func (l *LBLight) ListenAndServeTraffic(certCRTPath string, certKeyPath string) error {
 
+	log.Infof("ListenAndServeTraffic : port %d : crt %s : key %s", l.port, certCRTPath, certKeyPath)
 	err := http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port),certCRTPath, certKeyPath, http.HandlerFunc(l.handleRequestsAndRedirect))
 	if err != nil {
 		log.Errorf("SERVER BLEW UP!! %s", err.Error())

@@ -56,6 +56,7 @@ func main() {
 		config = pkg.LoadConfig("d:/home/site/wwwroot/lblight.json")
 	}
 
+	log.Infof("port is %d", port)
 	lbl := pkg.NewLBLight(port)
 
 	registerPaths(lbl, config)
