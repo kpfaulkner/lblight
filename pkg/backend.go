@@ -48,10 +48,10 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 	// if none spare but haven't hit maxBackends yet, make one
 	if len(ber.BackendConnections) <= ber.MaxConnections {
 		// TODO(kpfaulkner) determine schema from query?
-		url := fmt.Sprintf("http://%s:%d", ber.Host, ber.Port)
+		//url := fmt.Sprintf("http://%s:%d", ber.Host, ber.Port)
 
-		log.Infof("backend url %s", url)
-		bec := NewBackendConnection(url)
+		log.Infof("backend url %s", ber.Host)
+		bec := NewBackendConnection(ber.Host)
 		ber.BackendConnections = append(ber.BackendConnections, bec)
 		return bec, nil
 	}

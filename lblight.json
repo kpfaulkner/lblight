@@ -17,7 +17,7 @@
       ],
       "BackendConfigs": [
         {
-          "host": "lblbackend1.azurewebsites.net",
+          "host": "http://lblbackend1.azurewebsites.net:80",
           "port": 80,
           "maxconnections": 1000
         }
