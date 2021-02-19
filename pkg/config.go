@@ -23,6 +23,7 @@ type Config struct {
 	CertKeyPath          string                `json:"certkeypath"`
 	Host                 string                `json:"host"`
 	Port                 int                   `json:"port"`
+	TlsListener          bool                  `json:"tlslistener"`
 	BackendRouterConfigs []BackendRouterConfig `json:"BackendRouterConfigs"`
 }
 

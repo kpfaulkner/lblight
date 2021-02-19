@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -46,8 +47,11 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
 	// if none spare but haven't hit maxBackends yet, make one
 	if len(ber.BackendConnections) <= ber.MaxConnections {
-		bec := NewBackendConnection(fmt.Sprintf("http://%s:%d", ber.Host, ber.Port))
-		//bec := NewBackendConnection(fmt.Sprintf("http://%s", ber.Host))
+		// TODO(kpfaulkner) determine schema from query?
+		url := fmt.Sprintf("http://%s:%d", ber.Host, ber.Port)
+
+		log.Infof("backend url %s", url)
+		bec := NewBackendConnection(url)
 		ber.BackendConnections = append(ber.BackendConnections, bec)
 		return bec, nil
 	}

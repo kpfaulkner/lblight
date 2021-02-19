@@ -1,8 +1,9 @@
 {
   "Host": "127.0.0.1",
   "Port": 4000,
-  "CertCrtPath": "localhost.crt",
-  "CertKeyPath": "localhost.key",
+  "TlsListener": false,
+  "CertCrtPath": "./www_kenfau_net.crt",
+  "CertKeyPath": "./www_kenfau_net.key",
   "BackendRouterConfigs": [
     {
       "AcceptedPaths": [

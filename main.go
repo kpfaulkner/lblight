@@ -57,7 +57,7 @@ func main() {
 	}
 
 	log.Infof("port is %d", port)
-	lbl := pkg.NewLBLight(port)
+	lbl := pkg.NewLBLight(port, config.TlsListener)
 
 	registerPaths(lbl, config)
 

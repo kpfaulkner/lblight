@@ -18,13 +18,16 @@ type LBLight struct {
 
 	// match header KEY to a potential router
 	headerToBackendRouter map[string]map[string]*BackendRouter
+
+	// listen for TLS traffic (not behind TLS endpoint)
+	tlsListener bool
 }
 
-func NewLBLight(port int) *LBLight {
+func NewLBLight(port int, tlsListener bool) *LBLight {
 	lbl := LBLight{}
 	lbl.pathPrefixToBackendRouter = make(map[string]*BackendRouter)
 	lbl.headerToBackendRouter = make(map[string]map[string]*BackendRouter)
-
+	lbl.tlsListener = tlsListener
 	lbl.port = port
 	return &lbl
 }
@@ -162,7 +165,6 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		return
 	}
 
-
 	director := backendConnection.ReverseProxy.Director
 	backendConnection.ReverseProxy.Director = func(req *http.Request) {
 		director(req)
@@ -179,9 +181,16 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 }
 
 func (l *LBLight) ListenAndServeTraffic(certCRTPath string, certKeyPath string) error {
+	var err error
 
-	log.Infof("ListenAndServeTraffic : port %d : crt %s : key %s", l.port, certCRTPath, certKeyPath)
-	err := http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port),certCRTPath, certKeyPath, http.HandlerFunc(l.handleRequestsAndRedirect))
+	// If using behind a TLS termination endpoint (eg Azure LB) then listening for TLS traffic is wrong, since it's already
+	// been "stripped" of the TLS encryption at this point.
+	if l.tlsListener {
+		log.Infof("ListenAndServeTraffic : port %d : crt %s : key %s", l.port, certCRTPath, certKeyPath)
+		err = http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port), certCRTPath, certKeyPath, http.HandlerFunc(l.handleRequestsAndRedirect))
+	} else {
+		err = http.ListenAndServe(fmt.Sprintf(":%d", l.port), http.HandlerFunc(l.handleRequestsAndRedirect))
+	}
 	if err != nil {
 		log.Errorf("SERVER BLEW UP!! %s", err.Error())
 	}
