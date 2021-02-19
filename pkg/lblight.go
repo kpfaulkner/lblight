@@ -140,10 +140,10 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
 
-	log.Infof("doing stuff")
-	fmt.Printf("doing stuff\n")
-	fmt.Fprintf(res,"do stuff")
-	return
+	//log.Infof("doing stuff")
+	//fmt.Printf("doing stuff\n")
+	//fmt.Fprintf(res,"do stuff")
+	//return
 
 	log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
 
@@ -162,7 +162,17 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		return
 	}
 
+
+	director := backendConnection.ReverseProxy.Director
+	backendConnection.ReverseProxy.Director = func(req *http.Request) {
+		director(req)
+		req.URL.Scheme = "http"
+		req.Host = req.URL.Host
+	}
+
 	log.Info("Have backendconnection, about to start proxying")
+	log.Infof("req is %s", req.URL)
+
 	backendConnection.ReverseProxy.ServeHTTP(res, req)
 	//backend.SetInUse(false)
 	return

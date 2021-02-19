@@ -16,8 +16,8 @@
       ],
       "BackendConfigs": [
         {
-          "host": "127.0.0.1",
-          "port": 5000,
+          "host": "lblbackend1.azurewebsites.net",
+          "port": 80,
           "maxconnections": 1000
         }
       ]
@@ -35,7 +35,7 @@
       "BackendConfigs": [
         {
           "host": "127.0.0.1",
-          "port": 5001,
+          "port": 5000,
           "maxconnections": 1000
         }
       ]

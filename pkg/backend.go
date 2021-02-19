@@ -47,6 +47,7 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 	// if none spare but haven't hit maxBackends yet, make one
 	if len(ber.BackendConnections) <= ber.MaxConnections {
 		bec := NewBackendConnection(fmt.Sprintf("http://%s:%d", ber.Host, ber.Port))
+		//bec := NewBackendConnection(fmt.Sprintf("http://%s", ber.Host))
 		ber.BackendConnections = append(ber.BackendConnections, bec)
 		return bec, nil
 	}
