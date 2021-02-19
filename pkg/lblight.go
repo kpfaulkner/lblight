@@ -142,12 +142,6 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
-
-	//log.Infof("doing stuff")
-	//fmt.Printf("doing stuff\n")
-	//fmt.Fprintf(res,"do stuff")
-	//return
-
 	log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
 
 	backend, err := l.getBackend(req)
@@ -156,8 +150,6 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		return
 	}
 	//defer backend.SetInUse(false)
-
-	log.Infof("have backend")
 
 	backendConnection, err := backend.GetBackendConnection()
 	if err != nil {
@@ -168,15 +160,12 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	director := backendConnection.ReverseProxy.Director
 	backendConnection.ReverseProxy.Director = func(req *http.Request) {
 		director(req)
-		req.URL.Scheme = "http"
+		//req.URL.Scheme = "http"   // TODO(kpfaulkner) Need to determine if this is ok or if need to be determined from query?
 		req.Host = req.URL.Host
 	}
 
-	log.Info("Have backendconnection, about to start proxying")
-	log.Infof("req is %s", req.URL)
-
 	backendConnection.ReverseProxy.ServeHTTP(res, req)
-	//backend.SetInUse(false)
+
 	return
 }
 
