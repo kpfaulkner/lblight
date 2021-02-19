@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
+	"time"
 )
 
 func initLogging(logFile string) {
@@ -60,6 +61,13 @@ func main() {
 	lbl := pkg.NewLBLight(port, config.TlsListener)
 
 	registerPaths(lbl, config)
+
+	go func() {
+		for {
+			lbl.GetBackendStats()
+			<- time.After(5*time.Second)
+		}
+	}()
 
 	err := lbl.ListenAndServeTraffic(config.CertCrtPath, config.CertKeyPath)
 	if err != nil {

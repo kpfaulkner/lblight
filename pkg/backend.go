@@ -30,6 +30,21 @@ func NewBackend(host string, port int, maxConnections int) *Backend {
 	return &be
 }
 
+// LogStats... just a hack to get some data. Log stats (used connections etc).
+func (ber *Backend) LogStats() error {
+
+	becInUse := 0
+	for _, bec := range ber.BackendConnections {
+		if bec.IsInUse() {
+			becInUse++
+		}
+	}
+
+	log.Infof("Backend %s : currently in use %d", ber.Host, becInUse)
+
+	return nil
+}
+
 // GetBackendConnection either retrieves BackendConnection from a pool OR adds new entry to pool (or errors out)
 func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
@@ -52,6 +67,7 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
 		log.Infof("backend url %s", ber.Host)
 		bec := NewBackendConnection(ber.Host)
+		bec.SetInUse(true)
 		ber.BackendConnections = append(ber.BackendConnections, bec)
 		return bec, nil
 	}

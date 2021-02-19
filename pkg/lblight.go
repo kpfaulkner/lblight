@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // LBLight is the core of the load balancer.
@@ -19,8 +20,14 @@ type LBLight struct {
 	// match header KEY to a potential router
 	headerToBackendRouter map[string]map[string]*BackendRouter
 
+	// all BackendRouters.... just single point of reference for stats gathering.
+	allBackendRouters []*BackendRouter
+
 	// listen for TLS traffic (not behind TLS endpoint)
 	tlsListener bool
+
+	// just used to lock when we're gathering stats.
+	statsMux sync.RWMutex
 }
 
 func NewLBLight(port int, tlsListener bool) *LBLight {
@@ -78,6 +85,9 @@ func (l *LBLight) GetBackendRouterByHeader(headerName string, headerValue string
 // really should go to. If any of the paths/headers fail for thie BER, then fail them all.
 func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 
+	// list of all backend routers... just for stats.
+	l.allBackendRouters = append(l.allBackendRouters, ber)
+
 	// check if path/header already registered.
 	if ber.acceptedPaths != nil {
 		for path, _ := range ber.acceptedPaths {
@@ -124,6 +134,22 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 	return nil
 }
 
+// GetBackendStats just a hacky get stats/connection and logs it.
+// will be replaced by prometheus/whatever metrics.
+func (l *LBLight) GetBackendStats() error {
+
+	for _,ber := range l.allBackendRouters {
+		for _,be := range ber.backends {
+			err := be.LogStats()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 // getBackend.... TODO(kpfaulkner) make real!
 // just gets first match for now.
 func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
@@ -149,13 +175,13 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
 		return
 	}
-	//defer backend.SetInUse(false)
 
 	backendConnection, err := backend.GetBackendConnection()
 	if err != nil {
 		log.Errorf("Unable to find backendconnection for URL %s", req.RequestURI)
 		return
 	}
+	defer backendConnection.SetInUse(false) // once finished with connection, then release back to pool.
 
 	director := backendConnection.ReverseProxy.Director
 	backendConnection.ReverseProxy.Director = func(req *http.Request) {
@@ -165,7 +191,6 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	}
 
 	backendConnection.ReverseProxy.ServeHTTP(res, req)
-
 	return
 }
 
