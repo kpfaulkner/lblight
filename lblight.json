@@ -1,9 +1,9 @@
 {
   "Host": "127.0.0.1",
   "Port": 4000,
-  "TlsListener": false,
-  "CertCrtPath": "./www_kenfau_net.crt",
-  "CertKeyPath": "./www_kenfau_net.key",
+  "TlsListener": true,
+  "CertCrtPath": "./localhost.crt",
+  "CertKeyPath": "./localhost.key",
   "BackendRouterConfigs": [
     {
       "AcceptedPaths": [
@@ -35,9 +35,63 @@
       ],
       "BackendConfigs": [
         {
-          "host": "127.0.0.1",
+          "host": "https://lblightplainrest.azurewebsites.net/",
           "port": 5000,
           "maxconnections": 1000
+        }
+      ]
+    },
+    {
+      "AcceptedPaths": [
+        "/first"
+      ],
+      "AcceptedHeaders": [
+        {
+          "X-Header1": "val1",
+          "X-Header2": "val2"
+        }
+      ],
+      "BackendConfigs": [
+        {
+          "host": "http://10.0.0.99:5000/",
+          "port": 5000,
+          "maxconnections": 10000
+        }
+      ]
+    },
+    {
+      "AcceptedPaths": [
+        "/second"
+      ],
+      "AcceptedHeaders": [
+        {
+          "X-Header1": "val1",
+          "X-Header2": "val2"
+        }
+      ],
+      "BackendConfigs": [
+        {
+          "host": "http://10.0.0.99:5001/",
+          "port": 5000,
+          "maxconnections": 10000
+        }
+      ]
+    },
+    {
+      "AcceptedPaths": [
+        "/"
+      ],
+      "AcceptedHeaders": [
+        {
+          "X-Header1": "val1",
+          "X-Header2": "val2"
+        }
+      ],
+      "BackendConfigs": [
+        {
+          "host": "https://echo.websocket.org",
+          "port": 5000,
+          "maxconnections": 10000
         }
       ]
     }

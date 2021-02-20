@@ -2,8 +2,6 @@ package pkg
 
 import (
 	"crypto/tls"
-	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net"
 )
 
@@ -30,7 +28,7 @@ func dialTLS(network, addr string) (net.Conn, error) {
 
 	// Verify here
 	cert.VerifyHostname(host)
-	log.Infof(fmt.Sprintf("%v", cert.Subject))
+	//log.Infof(fmt.Sprintf("%v", cert.Subject))
 
 	return tlsConn, nil
 }
