@@ -35,13 +35,13 @@ Given LBLight needs to serve encrypted (HTTPS, WSS) traffic it will require cert
 
 Running locally, simple run the command with lblight.json in the same directory.
 
-Running in App Service....  still working on that :)
+Running in App Service, the KEY piece of knowledge is that App services already live behind a TLS Terminating load balancer. This means that by the time the traffic gets to LBLight, we're not dealing with encrypted traffic anymore. This means that (from a Go pov) we need to be listening with http.ListenAndServe and NOT http.ListenAndServeTLS. Otherwise it will complain about receiving HTTP traffic on a HTTPS port. To control this, modify the lblight.json so "TlsListener" is false.
 
-
+Deploy this how you would any other Go App Service, either drag and drop via SCM interface or using a tool similar to [WebjobDeploy](https://github.com/kpfaulkner/webjobdeploy etc. The files required will be the lblight executable, web.config (to tell IIS to run the Go based binary), lblight.json and your cert files (crt,key).
 
 ## TODO
 
-(should add these as Github issues)
+(see github repo for up to date issues)
 
 - Round robin backend selection
 - Least # active connections backend selection
