@@ -6,6 +6,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"sync"
+	"time"
 )
 
 // BackendConnection has the ReverseProxy to the real backend server.
@@ -29,7 +30,11 @@ func NewBackendConnection(uri string) *BackendConnection {
 
 	be.InUse = false
 	be.ReverseProxy = httputil.NewSingleHostReverseProxy(be.url)
-	be.ReverseProxy.Transport = &http.Transport{DialTLS: dialTLS}
+	be.ReverseProxy.Transport = &http.Transport{DialTLS: dialTLS, IdleConnTimeout: 90 * time.Second, TLSHandshakeTimeout: 10 * time.Second}
+	be.ReverseProxy.ErrorHandler = func(w http.ResponseWriter, req *http.Request, e error) {
+		log.Errorf("Connection to backend error : %s", e.Error())
+	}
+
 	return &be
 }
 

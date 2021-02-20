@@ -168,7 +168,7 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 
 // handleRequestsAndRedirect determines which BackendRouter should be used for the incoming request.
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
-	log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
+	//log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
 
 	backend, err := l.getBackend(req)
 	if err != nil {
@@ -188,6 +188,11 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		director(req)
 		//req.URL.Scheme = "http"   // TODO(kpfaulkner) Need to determine if this is ok or if need to be determined from query?
 		req.Host = req.URL.Host
+	}
+	backendConnection.ReverseProxy.ModifyResponse = func(res *http.Response) error {
+
+		// dont modify, just check.
+		return nil
 	}
 
 	backendConnection.ReverseProxy.ServeHTTP(res, req)
