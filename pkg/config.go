@@ -13,6 +13,7 @@ type BackendConfig struct {
 }
 
 type BackendRouterConfig struct {
+	SelectionMethod string            `json:"SelectionMethod"`
 	AcceptedPaths   []string          `json:"AcceptedPaths,omitempty"`
 	AcceptedHeaders map[string]string `json:"AcceptedHeaders,omitempty"`
 	BackendConfigs  []BackendConfig   `json:"BackendConfigs,omitempty"`

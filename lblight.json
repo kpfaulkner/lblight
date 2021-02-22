@@ -6,6 +6,7 @@
   "CertKeyPath": "./localhost.key",
   "BackendRouterConfigs": [
     {
+      "SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
         "/foo"
       ],
@@ -24,6 +25,7 @@
       ]
     },
     {
+      "SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
         "/bar"
       ],
@@ -41,7 +43,7 @@
         }
       ]
     },
-    {
+    {"SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
         "/first"
       ],
@@ -60,6 +62,7 @@
       ]
     },
     {
+      "SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
         "/second"
       ],
@@ -78,6 +81,7 @@
       ]
     },
     {
+      "SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
         "/"
       ],

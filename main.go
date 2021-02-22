@@ -27,8 +27,7 @@ func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 		}
 
 		// make header map later.
-		//headerMap := make(map[string]map[string])
-		ber := pkg.NewBackendRouter(nil, pathMap)
+		ber := pkg.NewBackendRouter(nil, pathMap, pkg.ParseBackendSelectionString(beConfig.SelectionMethod))
 
 		// now add backends that the router will route to.
 		for _, bec := range beConfig.BackendConfigs {
