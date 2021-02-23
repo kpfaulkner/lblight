@@ -3,7 +3,10 @@ package pkg
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"net"
+	"net/url"
 	"sync"
+	"time"
 )
 
 // Backend is unique for a given host:port. This might be pointing to a single machine or possibly a LB/cluster.
@@ -71,6 +74,21 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
 	// if cant make any more, return error.
 	return nil, fmt.Errorf("unable to provide backendconnection for request")
+}
+
+// CheckHealth confirms if can talk to host configured for this backend. If cannot, then mark backend as NOT alive.
+// Unsure if should do TCP or HTTP. TCP would have less overhead and really just interested if we can connect... surely?
+func (b *Backend) checkHealth() error {
+	timeout := 3 * time.Second
+
+	// just want raw host:port... might add to config if used elsewhere.
+	u, _ := url.Parse(b.Host)
+	conn, err := net.DialTimeout("tcp", u.Host, timeout)
+	b.SetIsAlive(err == nil)
+	if conn != nil {
+		conn.Close()
+	}
+	return nil
 }
 
 func (b *Backend) IsAlive() bool {

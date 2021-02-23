@@ -16,17 +16,16 @@ const (
 )
 
 var BackendSelectionMap = map[string]BackendSelectionMethod{
-	"roundrobin": BackendRoundRobin,
+	"roundrobin":      BackendRoundRobin,
 	"inuseconnection": BackendInuseConnections,
-	"random": BackendRandom,
+	"random":          BackendRandom,
 }
 
-
-func ParseBackendSelectionString( bes string ) BackendSelectionMethod {
+func ParseBackendSelectionString(bes string) BackendSelectionMethod {
 
 	var ok bool
 	var b BackendSelectionMethod
-	b, ok = BackendSelectionMap[ strings.ToLower(bes)]
+	b, ok = BackendSelectionMap[strings.ToLower(bes)]
 	if !ok {
 		// have to have a default of *some* sort.
 		return BackendRandom
@@ -74,6 +73,19 @@ func (ber *BackendRouter) AddBackend(backend *Backend) error {
 	return nil
 }
 
+func (ber *BackendRouter) checkHealthOfAllBackends() error {
+
+	for _, be := range ber.backends {
+
+		// ignoring error return value.
+		// The error will be indicating if the backend is healthy or not, and the Backend itself
+		// should be logging if its not healthy. Would just be doubling up on logging here.
+		_ = be.checkHealth()
+	}
+
+	return nil
+}
+
 // GetBackend either retrieves backend from a pool OR adds new entry to pool (or errors out)
 // This needs to be based on random/load/wild-guess/spirits....
 func (ber *BackendRouter) GetBackend() (*Backend, error) {
@@ -88,7 +100,7 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 		count := 5
 
 		// get next alive backend.
-		for count > 0{
+		for count > 0 {
 			r := rand.Intn(len(ber.backends))
 			be := ber.backends[r]
 			if be.IsAlive() {
@@ -123,7 +135,6 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 		// need to calculate based off number of connections etc.....    TODO(kpfaulkner)
 		return nil, fmt.Errorf("Not implemented")
 	}
-
 
 	// if cant make any more, return error.
 	return nil, fmt.Errorf("unable to provide backend for request")

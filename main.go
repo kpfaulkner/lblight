@@ -64,7 +64,14 @@ func main() {
 	go func() {
 		for {
 			lbl.GetBackendStats()
-			<- time.After(5*time.Second)
+			<-time.After(5 * time.Second)
+		}
+	}()
+
+	go func() {
+		for {
+			lbl.CheckHealthOfAllBackendRouters()
+			<-time.After(time.Duration(config.HealthCheckTimerInSeconds) * time.Second)
 		}
 	}()
 

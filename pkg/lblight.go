@@ -80,6 +80,23 @@ func (l *LBLight) GetBackendRouterByHeader(headerName string, headerValue string
 	return nil, fmt.Errorf("Unable to find matching backend for header %s : %s", headerName, headerValue)
 }
 
+// checkHealthOfAllBackendRouters loops through all BackendRouters, in turn
+// each BackendRouter will check each backend and attempt a connection... to determine
+// health.
+func (l *LBLight) CheckHealthOfAllBackendRouters() error {
+
+	if l.allBackendRouters != nil {
+		for _, ber := range l.allBackendRouters {
+
+			// ignoring error return value.
+			// The error will be indicating if the backend is healthy or not, and the Backend itself
+			// should be logging if its not healthy. Would just be doubling up on logging here.
+			ber.checkHealthOfAllBackends()
+		}
+	}
+	return nil
+}
+
 // AddBackendRouter register a BackendRouter to both pathPrefix map and header maps for lookup
 // at runtime. If we have multiple, then we'd definitely NOT know who the request
 // really should go to. If any of the paths/headers fail for thie BER, then fail them all.
@@ -138,8 +155,8 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 // will be replaced by prometheus/whatever metrics.
 func (l *LBLight) GetBackendStats() error {
 
-	for _,ber := range l.allBackendRouters {
-		for _,be := range ber.backends {
+	for _, ber := range l.allBackendRouters {
+		for _, be := range ber.backends {
 			err := be.LogStats()
 			if err != nil {
 				return err
@@ -189,8 +206,14 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 		//req.URL.Scheme = "http"   // TODO(kpfaulkner) Need to determine if this is ok or if need to be determined from query?
 		req.Host = req.URL.Host
 	}
-	backendConnection.ReverseProxy.ModifyResponse = func(res *http.Response) error {
 
+	// might want to add retries in here... for now, marking backend not alive.
+	backendConnection.ReverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+		log.Errorf("Backend <find ID> returned error, mark as not alive for moment. ") // TODO(kpfaulkner) add retry logic here.
+		backend.SetIsAlive(false)
+	}
+
+	backendConnection.ReverseProxy.ModifyResponse = func(res *http.Response) error {
 		// dont modify, just check.
 		return nil
 	}

@@ -20,12 +20,13 @@ type BackendRouterConfig struct {
 }
 
 type Config struct {
-	CertCrtPath          string                `json:"certcrtpath"`
-	CertKeyPath          string                `json:"certkeypath"`
-	Host                 string                `json:"host"`
-	Port                 int                   `json:"port"`
-	TlsListener          bool                  `json:"tlslistener"`
-	BackendRouterConfigs []BackendRouterConfig `json:"BackendRouterConfigs"`
+	HealthCheckTimerInSeconds int                   `json:"HealthCheckTimerInSeconds"`
+	CertCrtPath               string                `json:"certcrtpath"`
+	CertKeyPath               string                `json:"certkeypath"`
+	Host                      string                `json:"host"`
+	Port                      int                   `json:"port"`
+	TlsListener               bool                  `json:"tlslistener"`
+	BackendRouterConfigs      []BackendRouterConfig `json:"BackendRouterConfigs"`
 }
 
 // LoadConfig, loads configuation for LBLight. Primarily backend host, port, paths etc.
