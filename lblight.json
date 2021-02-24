@@ -1,7 +1,7 @@
 {
   "Host": "127.0.0.1",
   "Port": 4000,
-  "TlsListener": true,
+  "TlsListener": false,
   "CertCrtPath": "./localhost.crt",
   "CertKeyPath": "./localhost.key",
   "HealthCheckTimerInSeconds": 60,
@@ -21,7 +21,12 @@
         {
           "host": "http://lblbackend1.azurewebsites.net:80",
           "port": 80,
-          "maxconnections": 1000
+          "maxconnections": 0
+        },
+        {
+          "host": "http://10.0.0.99:5000",
+          "port": 80,
+          "maxconnections": 10000
         }
       ]
     },
@@ -40,7 +45,12 @@
         {
           "host": "https://lblightplainrest.azurewebsites.net/",
           "port": 5000,
-          "maxconnections": 1000
+          "maxconnections": 0
+        },
+        {
+          "host": "http://10.0.0.99:5001",
+          "port": 5001,
+          "maxconnections": 10000
         }
       ]
     },
@@ -84,7 +94,7 @@
     {
       "SelectionMethod": "RoundRobin",
       "AcceptedPaths": [
-        "/"
+        "/fkdk"
       ],
       "AcceptedHeaders": [
         {

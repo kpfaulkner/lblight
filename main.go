@@ -31,8 +31,11 @@ func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 
 		// now add backends that the router will route to.
 		for _, bec := range beConfig.BackendConfigs {
-			be := pkg.NewBackend(bec.Host, bec.Port, bec.MaxConnections)
-			ber.AddBackend(be)
+			// only ad if max connections > 0. (can use 0 to disable).
+			if bec.MaxConnections > 0 {
+				be := pkg.NewBackend(bec.Host, bec.Port, bec.MaxConnections)
+				ber.AddBackend(be)
+			}
 		}
 
 		lbl.AddBackendRouter(ber)
@@ -42,6 +45,8 @@ func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 func main() {
 
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+	//defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
+	//defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
 
 	initLogging("lblight.log")
 	var config pkg.Config

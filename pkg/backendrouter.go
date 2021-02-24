@@ -117,7 +117,7 @@ func (ber *BackendRouter) GetBackend() (*Backend, error) {
 		for count > 0 {
 			// need to put this in a lock. TODO(kpfaulkner)
 			ber.lastBackendSelected++
-			if ber.lastBackendSelected > len(ber.backends) {
+			if ber.lastBackendSelected >= len(ber.backends) {
 				ber.lastBackendSelected = 0
 			}
 

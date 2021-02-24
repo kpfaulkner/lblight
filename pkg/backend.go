@@ -64,7 +64,7 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 	}
 
 	// if none spare but haven't hit maxBackends yet, make one
-	if len(ber.BackendConnections) <= ber.MaxConnections {
+	if len(ber.BackendConnections) < ber.MaxConnections {
 		//log.Infof("backend url %s", ber.Host)
 		bec := NewBackendConnection(ber.Host)
 		bec.SetInUse(true)
@@ -80,8 +80,6 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 // Unsure if should do TCP or HTTP. TCP would have less overhead and really just interested if we can connect... surely?
 func (b *Backend) checkHealth() error {
 	timeout := 3 * time.Second
-
-	// just want raw host:port... might add to config if used elsewhere.
 	u, _ := url.Parse(b.Host)
 	conn, err := net.DialTimeout("tcp", u.Host, timeout)
 	b.SetIsAlive(err == nil)
