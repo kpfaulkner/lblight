@@ -31,8 +31,11 @@ func NewBackendConnection(uri string) *BackendConnection {
 	be.InUse = false
 	be.ReverseProxy = httputil.NewSingleHostReverseProxy(be.url)
 	be.ReverseProxy.Transport = &http.Transport{DialTLS: dialTLS, IdleConnTimeout: 90 * time.Second, TLSHandshakeTimeout: 10 * time.Second}
-	be.ReverseProxy.ErrorHandler = func(w http.ResponseWriter, req *http.Request, e error) {
-		log.Errorf("Connection to backend error : %s", e.Error())
+	director := be.ReverseProxy.Director
+	be.ReverseProxy.Director = func(req *http.Request) {
+		director(req)
+		//req.URL.Scheme = "http"   // TODO(kpfaulkner) Need to determine if this is ok or if need to be determined from query?
+		req.Host = req.URL.Host
 	}
 
 	return &be

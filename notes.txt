@@ -1,0 +1,29 @@
+RPS drops from 26929 down to 9472 when going via LBL. That is too much of a drop!
+
+
+running against LBLight
+
+C:\Users\kenfa\projects\go-wrk>.\go-wrk.exe -d 10 -c 500  http://10.0.0.99:4000/first
+Running 10s test @ http://10.0.0.99:4000/first
+  500 goroutine(s) running concurrently
+94377 requests in 9.963430171s, 9.72MB read
+Requests/sec:           9472.34
+Transfer/sec:           999.04KB
+Avg Req Time:           52.785266ms
+Fastest Request:        0s
+Slowest Request:        1.1510517s
+Number of Errors:       0
+
+
+running directly against webserver (that LBLight above was also hitting).
+
+C:\Users\kenfa\projects\go-wrk>.\go-wrk.exe -d 10 -c 500  http://10.0.0.99:5000/foo
+Running 10s test @ http://10.0.0.99:5000/foo
+  500 goroutine(s) running concurrently
+263994 requests in 9.803213193s, 27.19MB read
+Requests/sec:           26929.33
+Transfer/sec:           2.77MB
+Avg Req Time:           18.567113ms
+Fastest Request:        0s
+Slowest Request:        727.8351ms
+Number of Errors:       0

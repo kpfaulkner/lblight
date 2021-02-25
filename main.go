@@ -17,7 +17,6 @@ func initLogging(logFile string) {
 	log.SetOutput(file)
 	log.SetFormatter(&log.TextFormatter{})
 }
-
 func registerPaths(lbl *pkg.LBLight, config pkg.Config) {
 
 	for _, beConfig := range config.BackendRouterConfigs {

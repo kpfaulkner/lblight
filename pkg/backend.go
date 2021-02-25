@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"net/http"
 	"net/url"
 	"sync"
 	"time"
@@ -68,6 +69,11 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 		//log.Infof("backend url %s", ber.Host)
 		bec := NewBackendConnection(ber.Host)
 		bec.SetInUse(true)
+		bec.ReverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+			log.Errorf("Backend <find ID> returned error, mark as not alive for moment. ") // TODO(kpfaulkner) add retry logic here.
+			ber.SetIsAlive(false)
+		}
+
 		ber.BackendConnections = append(ber.BackendConnections, bec)
 		return bec, nil
 	}

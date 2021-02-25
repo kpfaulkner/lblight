@@ -200,24 +200,6 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	}
 	defer backendConnection.SetInUse(false) // once finished with connection, then release back to pool.
 
-	director := backendConnection.ReverseProxy.Director
-	backendConnection.ReverseProxy.Director = func(req *http.Request) {
-		director(req)
-		//req.URL.Scheme = "http"   // TODO(kpfaulkner) Need to determine if this is ok or if need to be determined from query?
-		req.Host = req.URL.Host
-	}
-
-	// might want to add retries in here... for now, marking backend not alive.
-	backendConnection.ReverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
-		log.Errorf("Backend <find ID> returned error, mark as not alive for moment. ") // TODO(kpfaulkner) add retry logic here.
-		backend.SetIsAlive(false)
-	}
-
-	backendConnection.ReverseProxy.ModifyResponse = func(res *http.Response) error {
-		// dont modify, just check.
-		return nil
-	}
-
 	backendConnection.ReverseProxy.ServeHTTP(res, req)
 	return
 }
