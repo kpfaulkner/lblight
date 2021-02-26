@@ -46,6 +46,7 @@ func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	//defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
 	//defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
+	//defer profile.Start(profile.GoroutineProfile, profile.ProfilePath(".")).Stop()
 
 	initLogging("lblight.log")
 	var config pkg.Config

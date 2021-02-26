@@ -1,11 +1,16 @@
 package pkg
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
+	"time"
 )
 
 // LBLight is the core of the load balancer.
@@ -28,6 +33,8 @@ type LBLight struct {
 
 	// just used to lock when we're gathering stats.
 	statsMux sync.RWMutex
+
+	counter int
 }
 
 func NewLBLight(port int, tlsListener bool) *LBLight {
@@ -155,6 +162,7 @@ func (l *LBLight) AddBackendRouter(ber *BackendRouter) error {
 // will be replaced by prometheus/whatever metrics.
 func (l *LBLight) GetBackendStats() error {
 
+	log.Infof("counter is %d", l.counter)
 	for _, ber := range l.allBackendRouters {
 		for _, be := range ber.backends {
 			err := be.LogStats()
@@ -204,16 +212,129 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 	return
 }
 
+func copyHeader(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
+	}
+}
+
+// handleRequestsAndRedirectAlternate try copying data between client and backend manually. Want to
+// determine if that has any perf benefits at all. (might end up being a nightmare
+func (l *LBLight) handleRequestsAndRedirectAlternate(res http.ResponseWriter, req *http.Request) {
+	//log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
+
+
+	l.statsMux.Lock()
+	l.counter++
+	l.statsMux.Unlock()
+
+	client := http.Client{}
+	transport := &http.Transport{
+		TLSHandshakeTimeout: 5 * time.Second,
+		IdleConnTimeout: 90 * time.Second,
+		ResponseHeaderTimeout:  90 * time.Second,
+	}
+	client.Transport = transport
+
+	// delay here causes similar : net/http: timeout awaiting response headers    error
+	// why are we having such delay issues?
+  //<- time.After(1000 * time.Millisecond)
+
+	backend, err := l.getBackend(req)
+	if err != nil {
+		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
+		return
+	}
+
+	backendConnection, err := backend.GetBackendConnection()
+	if err != nil {
+		log.Errorf("Unable to find backendconnection for URL %s", req.RequestURI)
+		return
+	}
+	defer backendConnection.SetInUse(false) // once finished with connection, then release back to pool.
+
+	//transport := &http.Transport{DialTLS: dialTLS, IdleConnTimeout: 90 * time.Second, TLSHandshakeTimeout: 10 * time.Second, }
+
+
+/*
+	transport := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 60 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 5 * time.Second,
+		IdleConnTimeout: 90 * time.Second,
+		ResponseHeaderTimeout:  90 * time.Second,
+	} */
+/*
+	netClient := &http.Client{
+		Timeout: time.Second * 10,
+		Transport: transport,
+	}
+*/
+
+	ctx := context.TODO()
+	cReq := req.Clone(ctx)
+	u, _ := url.Parse(backend.Host)
+	cReq.Host = u.Host
+	cReq.URL.Scheme = "http"
+	cReq.URL.Host = u.Host
+
+
+
+	//resp, err := client.Get("http://10.0.0.99:5000/first")
+
+
+	//resp, err := http.DefaultTransport.RoundTrip(cReq)
+	resp, err := transport.RoundTrip(cReq)
+	if err != nil {
+
+		if resp != nil && resp.Body != nil {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			s := buf.String()
+			fmt.Printf("s is %s\n", s)
+		}
+
+
+		log.Errorf("roundtrip error %s", err.Error())
+		http.Error(res, err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Fprintf(res, "foooo")
+	return
+
+
+
+	//copyHeader(res.Header(), resp.Header)
+	//res.WriteHeader(resp.StatusCode)
+	io.Copy(res, resp.Body)
+
+	return
+}
+
+
 func (l *LBLight) ListenAndServeTraffic(certCRTPath string, certKeyPath string) error {
 	var err error
+
+	// stolen from cloudflare blog. Read https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
+	srv := &http.Server{
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Addr: fmt.Sprintf(":%d", l.port),
+		Handler: http.HandlerFunc(l.handleRequestsAndRedirectAlternate),
+	}
 
 	// If using behind a TLS termination endpoint (eg Azure LB) then listening for TLS traffic is wrong, since it's already
 	// been "stripped" of the TLS encryption at this point.
 	if l.tlsListener {
 		log.Infof("ListenAndServeTraffic : port %d : crt %s : key %s", l.port, certCRTPath, certKeyPath)
-		err = http.ListenAndServeTLS(fmt.Sprintf(":%d", l.port), certCRTPath, certKeyPath, http.HandlerFunc(l.handleRequestsAndRedirect))
+		err = srv.ListenAndServeTLS(certCRTPath, certKeyPath)
 	} else {
-		err = http.ListenAndServe(fmt.Sprintf(":%d", l.port), http.HandlerFunc(l.handleRequestsAndRedirect))
+		err = srv.ListenAndServe()
 	}
 	if err != nil {
 		log.Errorf("SERVER BLEW UP!! %s", err.Error())
