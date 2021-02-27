@@ -21,7 +21,7 @@
         {
           "host": "http://10.0.0.116:5001",
           "port": 80,
-          "maxconnections": 1000
+          "maxconnections": 10000
         }
       ]
     },
@@ -38,13 +38,8 @@
       ],
       "BackendConfigs": [
         {
-          "host": "https://lblightplainrest.azurewebsites.net/",
+          "host": "http://10.0.0.116:5002",
           "port": 5000,
-          "maxconnections": 0
-        },
-        {
-          "host": "http://10.0.0.99:5001",
-          "port": 5001,
           "maxconnections": 10000
         }
       ]

@@ -89,7 +89,6 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
 			retries := GetRetryFromContext(request)
 			if retries < RetryAttempts {
-
 				log.Errorf("Failed query, delaying and retrying: %d : %s", retries,e.Error()) // TODO(kpfaulkner) add retry logic here.
 				<-time.After(RetryDelayInMS * time.Millisecond)
 				ctx := context.WithValue(request.Context(), RetryID, retries+1)
