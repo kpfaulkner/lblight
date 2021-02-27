@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
@@ -8,6 +9,13 @@ import (
 	"net/url"
 	"sync"
 	"time"
+)
+
+const (
+	RetryID int = 1
+
+	RetryAttempts int = 10
+	RetryDelayInMS time.Duration = 50
 )
 
 // Backend is unique for a given host:port. This might be pointing to a single machine or possibly a LB/cluster.
@@ -49,6 +57,14 @@ func (ber *Backend) LogStats() error {
 	return nil
 }
 
+// GetAttemptsFromContext returns the attempts for request
+func GetRetryFromContext(r *http.Request) int {
+	if retry, ok := r.Context().Value(RetryID).(int); ok {
+		return retry
+	}
+	return 0
+}
+
 // GetBackendConnection either retrieves BackendConnection from a pool OR adds new entry to pool (or errors out)
 func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
@@ -70,8 +86,19 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 		bec := NewBackendConnection(ber.Host)
 		bec.SetInUse(true)
 		bec.ReverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
+
+			retries := GetRetryFromContext(request)
+			if retries < RetryAttempts {
+
+				log.Errorf("Failed query, delaying and retrying: %d : %s", retries,e.Error()) // TODO(kpfaulkner) add retry logic here.
+				<-time.After(RetryDelayInMS * time.Millisecond)
+				ctx := context.WithValue(request.Context(), RetryID, retries+1)
+				bec.ReverseProxy.ServeHTTP(writer, request.WithContext(ctx))
+				return
+			}
+
+			ber.SetIsAlive(false)
 			log.Errorf("Backend <find ID> returned error. Pausing... %s", e.Error()) // TODO(kpfaulkner) add retry logic here.
-			//ber.SetIsAlive(false)
 			writer.WriteHeader(http.StatusTooManyRequests)
 		}
 

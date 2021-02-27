@@ -4,7 +4,7 @@
   "TlsListener": false,
   "CertCrtPath": "./localhost.crt",
   "CertKeyPath": "./localhost.key",
-  "HealthCheckTimerInSeconds": 60,
+  "HealthCheckTimerInSeconds": 5,
   "BackendRouterConfigs": [
     {
       "SelectionMethod": "RoundRobin",

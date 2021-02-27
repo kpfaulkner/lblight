@@ -187,6 +187,13 @@ func (l *LBLight) getBackend(req *http.Request) (*Backend, error) {
 func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.Request) {
 	//log.Infof("handleRequestsAndRedirect : %s", req.RequestURI)
 
+	retries := GetRetryFromContext(req)
+	if retries > RetryAttempts {
+		log.Warningf("Max retries for query, failing: %s %s", req.RemoteAddr, req.URL.Path)
+		http.Error(res, "Service not available", http.StatusServiceUnavailable)
+		return
+	}
+
 	backend, err := l.getBackend(req)
 	if err != nil {
 		log.Errorf("Unable to find backend for URL %s", req.RequestURI)
@@ -195,7 +202,9 @@ func (l *LBLight) handleRequestsAndRedirect(res http.ResponseWriter, req *http.R
 
 	backendConnection, err := backend.GetBackendConnection()
 	if err != nil {
+		// Assumption (not really valid) that we're under load so we're going to return 429
 		log.Errorf("Unable to find backendconnection for URL %s", req.RequestURI)
+		res.WriteHeader(http.StatusTooManyRequests)
 		return
 	}
 	defer backendConnection.SetInUse(false) // once finished with connection, then release back to pool.
