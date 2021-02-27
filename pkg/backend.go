@@ -70,8 +70,9 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 		bec := NewBackendConnection(ber.Host)
 		bec.SetInUse(true)
 		bec.ReverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, e error) {
-			log.Errorf("Backend <find ID> returned error, mark as not alive for moment. ") // TODO(kpfaulkner) add retry logic here.
-			ber.SetIsAlive(false)
+			log.Errorf("Backend <find ID> returned error. Pausing... %s", e.Error()) // TODO(kpfaulkner) add retry logic here.
+			//ber.SetIsAlive(false)
+			writer.WriteHeader(http.StatusTooManyRequests)
 		}
 
 		ber.BackendConnections = append(ber.BackendConnections, bec)
@@ -89,6 +90,10 @@ func (b *Backend) checkHealth() error {
 	u, _ := url.Parse(b.Host)
 	conn, err := net.DialTimeout("tcp", u.Host, timeout)
 	b.SetIsAlive(err == nil)
+
+	if err != nil {
+		log.Infof("healthcheck for %s is %v", b.Host, err == nil)
+	}
 	if conn != nil {
 		conn.Close()
 	}
