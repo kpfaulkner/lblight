@@ -14,7 +14,7 @@ import (
 const (
 	RetryID int = 1
 
-	RetryAttempts int = 10
+	RetryAttempts  int           = 10
 	RetryDelayInMS time.Duration = 50
 )
 
@@ -51,9 +51,7 @@ func (ber *Backend) LogStats() error {
 			becInUse++
 		}
 	}
-
 	log.Infof("Backend %s : currently in use %d", ber.Host, becInUse)
-
 	return nil
 }
 
@@ -89,7 +87,7 @@ func (ber *Backend) GetBackendConnection() (*BackendConnection, error) {
 
 			retries := GetRetryFromContext(request)
 			if retries < RetryAttempts {
-				log.Errorf("Failed query, delaying and retrying: %d : %s", retries,e.Error()) // TODO(kpfaulkner) add retry logic here.
+				log.Errorf("Failed query, delaying and retrying: %d : %s", retries, e.Error()) // TODO(kpfaulkner) add retry logic here.
 				<-time.After(RetryDelayInMS * time.Millisecond)
 				ctx := context.WithValue(request.Context(), RetryID, retries+1)
 				bec.ReverseProxy.ServeHTTP(writer, request.WithContext(ctx))
